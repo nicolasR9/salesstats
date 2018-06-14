@@ -2,19 +2,19 @@ package com.ebay.salesstatsnicolasr.model;
 
 public class Statistics {
     
-    private final long id;
-    private final String content;
-
-    public Statistics(long id, String content) {
-        this.id = id;
-        this.content = content;
+    private long totalSalesAmountCents;
+    private long orderCount;
+    
+    public Statistics(long totalSalesAmountCents, long orderCount) {
+        this.totalSalesAmountCents = totalSalesAmountCents;
+        this.orderCount = orderCount;
     }
 
-    public long getId() {
-        return id;
+    public long getTotalSalesAmountCents() {
+        return totalSalesAmountCents;
     }
 
-    public String getContent() {
-        return content;
+    public long getOrderCount() {
+        return orderCount;
     }
 }
