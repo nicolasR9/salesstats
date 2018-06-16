@@ -33,7 +33,7 @@ public class LoadTest {
 
     @Test
     public void testLoad() throws Exception {
-        int secondsToRun = 10;
+        int secondsToRun = 90;
         int salesThreads = 5;
         String amount = "9.00";
         

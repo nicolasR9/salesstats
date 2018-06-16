@@ -1,7 +1,7 @@
-- 60%-Impl
-- Load Test auf 90s
+
+
 - Unit tests
 - Kommentare
 - spring boot reactive
-- atomic integer / sync
 - Sichtbarkeit minimal
+- Load Test auf 90s
