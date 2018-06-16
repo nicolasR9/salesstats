@@ -3,10 +3,8 @@ import com.ebay.salesstatsnicolasr.model.Statistics;
 
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 @Component
 public class CheckoutStatisticsCalculator {
@@ -14,36 +12,52 @@ public class CheckoutStatisticsCalculator {
     private static final int STATISTICS_PERIOD_SECONDS = 60;
     
     private long checkoutAmountSum = 0;
-    private Queue<Entry> queue = new LinkedList<Entry>();
     
-    public synchronized void add(long checkoutAmount) {
+    private long orderCount = 0;
+    
+    private TreeMap<Long, Entry> checkoutSecondToStatistics = new TreeMap<>();
+
+    //TODO are seconds enough?
+    public void add(long checkoutAmount, long currentTimeMillis) {
         checkoutAmountSum += checkoutAmount;
-        queue.add(new Entry(LocalDateTime.now(), checkoutAmount));
-    }
-    
-    public synchronized Statistics getStatistics() {
-        removeOldEntries();
-        return new Statistics(checkoutAmountSum, queue.size());
-    }
-    
-    private void removeOldEntries() {
-        Entry entry = queue.peek();
-        LocalDateTime now = LocalDateTime.now();
-        while (entry != null && Duration.between(entry.checkoutTime, now).getSeconds() > STATISTICS_PERIOD_SECONDS) {
-            queue.remove();
-            checkoutAmountSum -= entry.checkoutAmount;
-            entry = queue.peek();
+        ++orderCount;
+        //TODO just use first entry
+        long key = currentTimeMillis / 1000;
+        Entry entry = checkoutSecondToStatistics.get(key);
+        if (entry == null) {
+            entry = new Entry(1, checkoutAmount);
+        } else {
+            entry.checkoutAmount += checkoutAmount;
+            ++entry.count;
         }
+        checkoutSecondToStatistics.put(key, entry);
     }
     
+    public Statistics getStatistics(long currentTimeMillis) {
+        removeOldEntries(currentTimeMillis);
+        return new Statistics(checkoutAmountSum, orderCount);
+    }
+    
+    //TODO call every x seconds
+    private void removeOldEntries(long currentTimeMillis) {
+        SortedMap<Long, Entry> toRemove =
+                checkoutSecondToStatistics.headMap(currentTimeMillis / 1000 - STATISTICS_PERIOD_SECONDS);
+        for (java.util.Map.Entry<Long, Entry> entry : toRemove.entrySet()) {
+            checkoutAmountSum -= entry.getValue().checkoutAmount;
+            orderCount -= entry.getValue().count;
+        }
+        toRemove.clear();
+    }
+
     private static class Entry {
-        private LocalDateTime checkoutTime;
-        private double checkoutAmount;
         
-        public Entry(LocalDateTime checkoutTime, double checkoutAmount) {
-            this.checkoutTime = checkoutTime;
+        public Entry(long count, double checkoutAmount) {
+            this.count = count;
             this.checkoutAmount = checkoutAmount;
         }
+        private long count;
+        private double checkoutAmount;
     }
+
 
 }

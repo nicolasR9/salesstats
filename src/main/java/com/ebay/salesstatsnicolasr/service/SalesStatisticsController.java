@@ -18,7 +18,7 @@ public class SalesStatisticsController {
     
     @GetMapping("/statistics")
     public StatisticsResource getStatistics() {
-        return new StatisticsResource(statisticsCalculator.getStatistics());
+        return new StatisticsResource(statisticsCalculator.getStatistics(System.currentTimeMillis()));
     }
 
     // curl -v -X POST --header "Content-type:application/x-www-form-urlencoded"  "http://localhost:8080/sales?sales_amount=12.00"
@@ -28,7 +28,7 @@ public class SalesStatisticsController {
             return ResponseEntity.badRequest().body("Bad number format for sales_amount. Expected e.g. 12.00");
         }
         long amount = Long.parseLong(salesAmount.replace(".", ""));
-        statisticsCalculator.add(amount);
+        statisticsCalculator.add(amount, System.currentTimeMillis());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 }
