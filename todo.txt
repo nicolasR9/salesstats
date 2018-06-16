@@ -1,0 +1,7 @@
+- Load Test
+- Unit tests
+- Kommentare
+- 60%-Impl
+- spring boot reactive
+- atomic integer / sync
+- Sichtbarkeit minimal

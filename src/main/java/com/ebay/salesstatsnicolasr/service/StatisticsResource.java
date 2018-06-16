@@ -9,9 +9,11 @@ import java.util.Locale;
 
 public class StatisticsResource {
     
-    private final String totalSalesAmount;
-    private final String averageAmountPerOrder;
+    private String totalSalesAmount;
+    private String averageAmountPerOrder;
     
+    public StatisticsResource() {}
+
     public StatisticsResource(Statistics statistics) {
         NumberFormat nf = NumberFormat.getInstance(Locale.US);
         nf.setMinimumFractionDigits(2);

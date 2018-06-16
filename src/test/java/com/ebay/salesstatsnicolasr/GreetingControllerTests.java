@@ -1,6 +1,7 @@
 package com.ebay.salesstatsnicolasr;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,6 +21,12 @@ public class GreetingControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
+    
+    
+    @Test
+    public void saleAndStatistics() throws Exception {
+        this.mockMvc.perform(post("/sales").contentType("application/x-www-form-urlencoded").param("sales_amount", "9.00")).andDo(print());
+    }
 
     @Test
     public void noParamGreetingShouldReturnDefaultMessage() throws Exception {

@@ -16,12 +16,12 @@ public class CheckoutStatisticsCalculator {
     private long checkoutAmountSum = 0;
     private Queue<Entry> queue = new LinkedList<Entry>();
     
-    public void add(long checkoutAmount) {
+    public synchronized void add(long checkoutAmount) {
         checkoutAmountSum += checkoutAmount;
         queue.add(new Entry(LocalDateTime.now(), checkoutAmount));
     }
     
-    public Statistics getStatistics() {
+    public synchronized Statistics getStatistics() {
         removeOldEntries();
         return new Statistics(checkoutAmountSum, queue.size());
     }
@@ -45,13 +45,5 @@ public class CheckoutStatisticsCalculator {
             this.checkoutAmount = checkoutAmount;
         }
     }
-    
-    public static void main(String[] args) throws Exception {
-        CheckoutStatisticsCalculator s = new CheckoutStatisticsCalculator();
-        s.add(30);
-        s.add(40);
-        Statistics statistics = s.getStatistics();
-        System.out.println(statistics.getOrderCount());
-        System.out.println(statistics.getTotalSalesAmountCents());
-    }
+
 }
