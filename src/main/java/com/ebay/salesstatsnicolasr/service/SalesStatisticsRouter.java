@@ -14,14 +14,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Configuration
 public class SalesStatisticsRouter {
 
-    @Bean
-    public RouterFunction<ServerResponse> route(SalesStatisticsHandler salesStatisticsHandler) {
+	@Bean
+	public RouterFunction<ServerResponse> route(SalesStatisticsHandler salesStatisticsHandler) {
 
-        return RouterFunctions.route(GET("/statistics"), salesStatisticsHandler::statistics)
-                .andRoute(
-                        POST("/sales").and(contentType(
-                                MediaType.parseMediaType("application/x-www-form-urlencoded"))),
-                        salesStatisticsHandler::sales);
-    }
+		return RouterFunctions.route(GET("/statistics"), salesStatisticsHandler::statistics).andRoute(
+				POST("/sales").and(contentType(MediaType.APPLICATION_FORM_URLENCODED)), salesStatisticsHandler::sales);
+	}
 
 }
