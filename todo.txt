@@ -1,8 +1,0 @@
-- Kommentare
-- pmd check
-
-
-
-
-
-curl -v -X POST --header "Content-type:application/x-www-form-urlencoded"  "http://localhost:8080/sales?sales_amount=12.00"
