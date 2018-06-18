@@ -25,6 +25,9 @@ public class CheckoutStatisticsCalculator {
     private SortedMap<Long, PerSecondStatisticsEntry> checkoutSecondToStatistics =
             new TreeMap<>();
 
+    /* Synchronization could be done more fine-grained if necessary, but this solution is really simple and
+     * performance tests show a performance which is more than sufficient for the requirements.
+    */
     public synchronized void add(long checkoutAmount, long currentTimeSeconds) {
         checkoutAmountSum += checkoutAmount;
         ++orderCount;
