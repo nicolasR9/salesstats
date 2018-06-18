@@ -31,27 +31,34 @@ public class SalesStatisticsHandler {
 	}
 
 	public Mono<ServerResponse> sales(ServerRequest request) {
-		return request.formData().map(MultiValueMap::toSingleValueMap)
-				.filter(formData -> isValid(formData.get("sales_amount"))).flatMap(formData -> {
-					addSaleToCalculator(formData);
+		return request
+				.formData()
+				.map(MultiValueMap::toSingleValueMap)
+				.flatMap(formData -> {
+					String salesAmount = formData.get("sales_amount");
+					String validationMessage = validate(salesAmount);
+					if (validationMessage != null) {
+						return ServerResponse.badRequest().body(BodyInserters.fromObject(validationMessage));
+					}
+					addSaleToCalculator(salesAmount);
 					return ServerResponse.accepted().build();
-				}).switchIfEmpty(ServerResponse.badRequest().build());
+				});
 	}
 
-	private void addSaleToCalculator(Map<String, String> formData) {
-		long amount = Long.parseLong(formData.get("sales_amount").replace(".", ""));
+	private void addSaleToCalculator(String salesAmount) {
+		long amount = Long.parseLong(salesAmount.replace(".", ""));
 		long currentTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 		statisticsCalculator.add(amount, currentTimeSeconds);
 	}
 
-	private boolean isValid(String salesAmount) {
+	private String validate(String salesAmount) {
 		if (salesAmount == null) {
-			return false;
+			return "sales_amount parameter required";
 		}
 
 		if (!salesAmount.matches("\\d+\\.\\d{2}")) {
-			return false;
+			return "Bad number format for sales_amount. Expected e.g. 12.00";
 		}
-		return true;
+		return null;
 	}
 }
