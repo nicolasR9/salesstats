@@ -5,11 +5,9 @@ import com.ebay.salesstatsnicolasr.model.Statistics;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Calculates the checkout statistics (order count, order amount total) for the last 60 seconds.
@@ -20,29 +18,29 @@ public class CheckoutStatisticsCalculator {
 
     private static final int STATISTICS_PERIOD_SECONDS = 60;
 
-    private AtomicLong checkoutAmountSum = new AtomicLong(0);
+    private long checkoutAmountSum = 0;
+    private long orderCount = 0;
 
-    private AtomicLong orderCount = new AtomicLong(0);
-
+    //key: seconds since 1970, value: checkout statistics for that second
     private SortedMap<Long, PerSecondStatisticsEntry> checkoutSecondToStatistics =
-            Collections.synchronizedSortedMap(new TreeMap<>());
+            new TreeMap<>();
 
-    public void add(long checkoutAmount, long currentTimeSeconds) {
-        checkoutAmountSum.addAndGet(checkoutAmount);
-        orderCount.incrementAndGet();
+    public synchronized void add(long checkoutAmount, long currentTimeSeconds) {
+        checkoutAmountSum += checkoutAmount;
+        ++orderCount;
         PerSecondStatisticsEntry perSecondStatisticsEntry = checkoutSecondToStatistics.get(currentTimeSeconds);
-        if (perSecondStatisticsEntry == null) {
+        if (perSecondStatisticsEntry == null) { //first checkout in this second
             perSecondStatisticsEntry = new PerSecondStatisticsEntry(checkoutAmount);
         } else {
-            perSecondStatisticsEntry.checkoutAmount.addAndGet(checkoutAmount);
-            perSecondStatisticsEntry.count.incrementAndGet();
+            perSecondStatisticsEntry.checkoutAmount += checkoutAmount;
+            ++perSecondStatisticsEntry.count;
         }
         checkoutSecondToStatistics.put(currentTimeSeconds, perSecondStatisticsEntry);
     }
 
-    public Statistics getStatistics(long currentTimeSeconds) {
+    public synchronized Statistics getStatistics(long currentTimeSeconds) {
         removeOldEntries(currentTimeSeconds);
-        return new Statistics(checkoutAmountSum.longValue(), orderCount.longValue());
+        return new Statistics(checkoutAmountSum, orderCount);
     }
     
     /**
@@ -54,14 +52,18 @@ public class CheckoutStatisticsCalculator {
         removeOldEntries(currentTimeSeconds);
     }
 
+    /**
+     * Removes all entries from the map which are at least 60 seconds older than currentTimeSeconds.
+     * Updates the global statistics accordingly.
+     */
     private void removeOldEntries(long currentTimeSeconds) {
         long threshold = currentTimeSeconds - STATISTICS_PERIOD_SECONDS;
         SortedMap<Long, PerSecondStatisticsEntry> toRemove =
                 checkoutSecondToStatistics.headMap(threshold);
         
         toRemove.entrySet().stream().forEach(entry -> {
-            checkoutAmountSum.addAndGet(-entry.getValue().checkoutAmount.longValue());
-            orderCount.addAndGet(-entry.getValue().count.longValue());
+            checkoutAmountSum -= entry.getValue().checkoutAmount;
+            orderCount -= entry.getValue().count;
         });
         toRemove.clear();
     }
@@ -69,11 +71,11 @@ public class CheckoutStatisticsCalculator {
     private static class PerSecondStatisticsEntry {
 
         public PerSecondStatisticsEntry(long checkoutAmount) {
-            this.count = new AtomicLong(1);
-            this.checkoutAmount = new AtomicLong(checkoutAmount);
+            this.count = 1;
+            this.checkoutAmount = checkoutAmount;
         }
 
-        private AtomicLong count;
-        private AtomicLong checkoutAmount;
+        private long count;
+        private long checkoutAmount;
     }
 }
